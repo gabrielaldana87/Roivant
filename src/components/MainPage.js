@@ -1,4 +1,5 @@
 import React , { Component } from 'react';
+import Container from './containers/Container';
 import Svg from './chart/elements/Svg';
 import ToolTip from './chart/elements/ToolTip';
 import ChartOne from './chart/graph/ChartOne';
@@ -7,7 +8,9 @@ import ChartThree from './chart/graph/ChartThree';
 import ChartFour from './chart/graph/ChartFour';
 import { csv , sum , max , scaleBand , scaleTime } from 'd3';
 import Select from 'react-select';
+import ReactDataGrid from 'react-data-grid';
 import _ from 'underscore';
+import './MainPage.scss';
 
 class MainPage extends Component {
   constructor(props) {
@@ -20,7 +23,8 @@ class MainPage extends Component {
       keys: [],
       aggregateColumns: null,
       cumulativePayments: [],
-      timeDomain: [ ]
+      timeDomain: [],
+      nullValuesInColumn: []
     }
   }
   ;
@@ -57,14 +61,18 @@ class MainPage extends Component {
 
     this.setState({ cumulativePayments : cumulativePayments });
 
-    var columns = data.columns.map((o,i) => {
+    this.setState({ nullValuesInColumn : [{ name : 'Number of Rows' , value: data.length }]});
+
+    this.setState({ columns : data.columns.map((o,i) => {
       return {
         value: i,
-        label: o
+        label: o,
+        key: o,
+        name: o,
+        resizable: true,
+        width: 120
       }
-    });
-
-    this.setState({ columns : columns });
+    }) });
 
     this.setState({ data : data });
 
@@ -72,16 +80,31 @@ class MainPage extends Component {
 
     this.setState({ timeDomain : timeDomain });
 
-
-
   }
   ;
   filter = (val) => {
     let
       data = this.state.data,
       uniq = _.uniq(data, o => o[ val.label ]),
-      keys = uniq.map(o => o[ val.label ])
-      ;
+      keys = uniq.map(o => o[ val.label ]),
+      arr1 = [],
+      arr2 = [],
+      obj = {},
+      countone = 0,
+      counttwo = 0,
+      reduce = data.reduce( (a,o) => {
+        if ( o[ val.label ] !== null && o[ val.label ] !== '' ) {
+          countone += 1;
+          obj['valueExists'] = countone;
+        } else {
+          counttwo += 1;
+          obj['valueEmpty'] = counttwo;
+        }
+        return obj;
+      },0),
+      nullDataSet = Object.keys(reduce).map(o => { return { name: o, value: reduce[o] }})
+    ;
+    this.setState({ nullValuesInColumn : nullDataSet });
     this.setState({ keys: keys });
     this.setState({ chartOneXDomain : keys });
 
@@ -112,18 +135,19 @@ class MainPage extends Component {
     let list = this.state.keys;
     let data = this.state.data;
     const
-      width = 1200,
+      width = 1000,
       height = 200,
       yDomain = this.state.chartOneYDomain,
       xDomain = this.state.chartOneXDomain,
       xDomainTime = this.state.timeDomain,
       aggregateColumns = this.state.aggregateColumns,
+      nullValuesInColumn = this.state.nullValuesInColumn,
       position = `translate(20,0)`,
       margin = { top: 10, bottom: 10, right: 20, left: 20 }
       ;
     return (
       <>
-      <div className=''>
+      <div>
         <ToolTip
           className='tooltip'
         />
@@ -135,30 +159,53 @@ class MainPage extends Component {
           onChange= { this.filter }
         />
       </div>
-        {/*<ul>*/}
-          {/*{ list ? this.state.keys.map((o,i) => {*/}
-            {/*return <li key= { i } > { o }</li>*/}
-          {/*})*/}
-            {/*: null*/}
-          {/*}*/}
-        {/*</ul>*/}
-        <Svg className='roivant' width={ width + margin.left + margin.right } height={ height + margin.top + margin.bottom }>
-          <ChartOne
-            margin={ margin }
-            dataset={ data }
-            aggregateColumns={ aggregateColumns }
-            className='chart_one'
-            yAxisClassName='chart--one--axis--y'
-            xAxisClassName='chart--one--axis--x'
-            scale={ scaleBand }
-            width={ ( width + margin.left + margin.right )  * 1 }
-            height={ ( height + margin.top + margin.bottom ) * .80  }
-            yDomain={ yDomain }
-            xDomain={ xDomain }
-            position={ position }
+      <div className='container'>
+          <Container
+            id={ 'one' }
+            title='Total Payment By Column'
+            width='73%'
           >
-          </ChartOne>
-        </Svg>
+            <Svg className='roivant' width={ width + margin.left + margin.right } height={ height + margin.top + margin.bottom }>
+              <ChartOne
+                margin={ margin }
+                dataset={ data }
+                aggregateColumns={ aggregateColumns }
+                className='chart_one'
+                yAxisClassName='chart--one--axis--y'
+                xAxisClassName='chart--one--axis--x'
+                scale={ scaleBand }
+                width={ ( width + margin.left + margin.right )  * 1 }
+                height={ ( height + margin.top + margin.bottom ) * .80  }
+                yDomain={ yDomain }
+                xDomain={ xDomain }
+                position={ position }
+              >
+              </ChartOne>
+            </Svg>
+          </Container>
+          <Container
+            id={ 'two' }
+            title='Missing Data'
+            width='25%'
+          >
+            <Svg className='roivant--three' width= { (width * .25) + margin.left + margin.right } height={ (height * 1 + margin.top + margin.bottom )} >
+              <ChartThree
+                margin={ margin }
+                nullValuesInColumn={ nullValuesInColumn }
+                width={ width * .25 }
+                height={ height * 1.1 }
+                className='chart_three'
+                radius={ Math.min( width * .25 , height * 1 )/2 }
+                thickness={ 40 }
+              />
+            </Svg>
+          </Container>
+        </div>
+      <Container
+        title='Aggregate Payments by Column'
+        width='73%'
+        id={ 'three' }
+      >
         <Svg className='roivant--two' width={ width + margin.left + margin.right } height={ height + margin.top + margin.bottom }>
           <ChartTwo
             margin={ margin }
@@ -174,6 +221,20 @@ class MainPage extends Component {
             yDomain={ yDomain }
           ></ChartTwo>
         </Svg>
+      </Container>
+      <Container
+        title='Transaction History'
+      >
+        <ReactDataGrid
+          columns={ this.state.columns }
+          rowGetter={ i => this.state.data[i] }
+          rowsCount={ this.state.data.length  }
+          width={ 600 }
+          sortable={ true }
+          minHeight={ 200 }
+        />
+      </Container>
+
           {/*<ChartThree className='chart_three'></ChartThree>*/}
           {/*<ChartFour className='chart_four'></ChartFour>*/}
       </>

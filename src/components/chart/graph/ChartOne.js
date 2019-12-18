@@ -70,6 +70,8 @@ class ChartOne extends Component {
         ;
       })
       .on('mouseout', () => tooltip.select('.inner-tool').text( '' ))
+      .on('click', d => {
+      })
     ;
   }
   ;

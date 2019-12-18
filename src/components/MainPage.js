@@ -24,6 +24,7 @@ class MainPage extends Component {
       aggregateColumns: null,
       cumulativePayments: [],
       timeDomain: [],
+      listValues: [{value:'val_1', label: 'Select from Dropdown Above' }],
       nullValuesInColumn: []
     }
   }
@@ -87,8 +88,6 @@ class MainPage extends Component {
       data = this.state.data,
       uniq = _.uniq(data, o => o[ val.label ]),
       keys = uniq.map(o => o[ val.label ]),
-      arr1 = [],
-      arr2 = [],
       obj = {},
       countone = 0,
       counttwo = 0,
@@ -101,7 +100,7 @@ class MainPage extends Component {
           obj['valueEmpty'] = counttwo;
         }
         return obj;
-      },0),
+      }, 0 ),
       nullDataSet = Object.keys(reduce).map(o => { return { name: o, value: reduce[o] }})
     ;
     this.setState({ nullValuesInColumn : nullDataSet });
@@ -118,9 +117,15 @@ class MainPage extends Component {
     });
 
     this.setState({ aggregateColumns : summation });
-
+    this.setState({ listValues: summation.map((o,i) => { return { value: o.key , label: o.key } })});
     this.setState({ chartOneYDomain : [ 0 , max(summation, o => o['sum']) ]});
 
+  }
+  ;
+  multiSelect = (val) => {
+    const
+      filteredDataSet = val.map(o => o['label'] )
+    ;
   }
   ;
   componentDidMount () {
@@ -154,74 +159,88 @@ class MainPage extends Component {
         <ToolTip
           className='tooltip-chart-two'
         />
-        <Select
-          options={ this.state.columns }
-          onChange= { this.filter }
-        />
       </div>
       <div className='container'>
-          <Container
-            id={ 'one' }
-            title='Total Payment By Column'
-            width='73%'
-          >
-            <Svg className='roivant' width={ width + margin.left + margin.right } height={ height + margin.top + margin.bottom }>
-              <ChartOne
-                margin={ margin }
-                dataset={ data }
-                aggregateColumns={ aggregateColumns }
-                className='chart_one'
-                yAxisClassName='chart--one--axis--y'
-                xAxisClassName='chart--one--axis--x'
-                scale={ scaleBand }
-                width={ ( width + margin.left + margin.right )  * 1 }
-                height={ ( height + margin.top + margin.bottom ) * .80  }
-                yDomain={ yDomain }
-                xDomain={ xDomain }
-                position={ position }
-              >
-              </ChartOne>
-            </Svg>
-          </Container>
-          <Container
-            id={ 'two' }
-            title='Missing Data'
-            width='25%'
-          >
-            <Svg className='roivant--three' width= { (width * .25) + margin.left + margin.right } height={ (height * 1 + margin.top + margin.bottom )} >
-              <ChartThree
-                margin={ margin }
-                nullValuesInColumn={ nullValuesInColumn }
-                width={ width * .25 }
-                height={ height * 1.1 }
-                className='chart_three'
-                radius={ Math.min( width * .25 , height * 1 )/2 }
-                thickness={ 40 }
-              />
-            </Svg>
-          </Container>
-        </div>
-      <Container
-        title='Aggregate Payments by Column'
-        width='73%'
-        id={ 'three' }
-      >
-        <Svg className='roivant--two' width={ width + margin.left + margin.right } height={ height + margin.top + margin.bottom }>
-          <ChartTwo
-            margin={ margin }
-            aggregateColumns={ aggregateColumns }
-            yAxisClassName='chart--two--axis--y'
-            xAxisClassName='chart--two--axis--x'
-            scale={ scaleTime }
-            width={ ( width + margin.left + margin.right )  * 1 }
-            height={ ( height + margin.top + margin.bottom ) * .80 }
-            className='chart_two'
-            position={ position }
-            xDomain={ xDomainTime }
-            yDomain={ yDomain }
-          ></ChartTwo>
-        </Svg>
-      </Container>
+        <Container
+          id={ 'one' }
+          title='Total Payment By Column'
+          width='73%'
+        >
+          <Svg className='roivant' width={ width + margin.left + margin.right } height={ height + margin.top + margin.bottom }>
+            <ChartOne
+              margin={ margin }
+              dataset={ data }
+              aggregateColumns={ aggregateColumns }
+              className='chart_one'
+              yAxisClassName='chart--one--axis--y'
+              xAxisClassName='chart--one--axis--x'
+              scale={ scaleBand }
+              width={ ( width + margin.left + margin.right )  * 1 }
+              height={ ( height + margin.top + margin.bottom ) * .80  }
+              yDomain={ yDomain }
+              xDomain={ xDomain }
+              position={ position }
+            >
+            </ChartOne>
+          </Svg>
+        </Container>
+        <Container
+          id={ 'two' }
+          title='Missing Data'
+          width='25%'
+        >
+          <Svg className='roivant--three' width= { (width * .25) + margin.left + margin.right } height={ (height * 1 + margin.top + margin.bottom )} >
+            <ChartThree
+              margin={ margin }
+              nullValuesInColumn={ nullValuesInColumn }
+              width={ width * .25 }
+              height={ height * 1.1 }
+              className='chart_three'
+              radius={ Math.min( width * .25 , height * 1 )/2 }
+              thickness={ 40 }
+            />
+          </Svg>
+        </Container>
+      </div>
+      <div className='container'>
+        <Container
+          title='Aggregate Payments by Column'
+          width='73%'
+          id={ 'three' }
+        >
+          <Svg className='roivant--two' width={ width + margin.left + margin.right } height={ height + margin.top + margin.bottom }>
+            <ChartTwo
+              margin={ margin }
+              aggregateColumns={ aggregateColumns }
+              yAxisClassName='chart--two--axis--y'
+              xAxisClassName='chart--two--axis--x'
+              scale={ scaleTime }
+              width={ ( width + margin.left + margin.right )  * 1 }
+              height={ ( height + margin.top + margin.bottom ) * .80 }
+              className='chart_two'
+              position={ position }
+              xDomain={ xDomainTime }
+              yDomain={ yDomain }
+            ></ChartTwo>
+          </Svg>
+        </Container>
+        <Container
+          title='Select Column to Partition Data'
+          width='25%'
+          id={ 'four' }
+          style={{ height : height }}
+        >
+          <Select
+            options={ this.state.columns }
+            onChange= { this.filter }
+          />
+          <Select
+            options={ this.state.listValues }
+            isMulti
+            onChange= { this.multiSelect }
+          />
+        </Container>
+      </div>
       <Container
         title='Transaction History'
       >

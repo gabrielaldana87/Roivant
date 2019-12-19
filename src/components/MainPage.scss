@@ -23,3 +23,21 @@ body {
   background: #F9FAFB;
   border: 2px solid white;
 }
+
+.inner-stat {
+  font-weight: 500;
+  color: #72777a;
+  font-size: .8rem;
+  line-height: 18px;
+  letter-spacing: -0.04px;
+  margin-bottom: .35rem;
+  margin-left: 1rem;
+}
+
+.inner-stat span {
+  font-weight: 600;
+  color: rgb(42, 54, 59);
+  font-size: .9rem;
+  float: right;
+  margin-right: 20px;
+}

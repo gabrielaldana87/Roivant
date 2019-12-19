@@ -12,7 +12,7 @@ class AxisY extends React.Component {
   yAxis () {
     const yScale = this.yScale();
     return axisLeft(yScale)
-      .tickFormat(format('.0s'));;
+      .tickFormat(format('.0s'));
   }
   ;
   componentDidUpdate () {

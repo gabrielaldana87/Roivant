@@ -6,7 +6,7 @@ import ChartOne from './chart/graph/ChartOne';
 import ChartTwo from './chart/graph/ChartTwo';
 import ChartThree from './chart/graph/ChartThree';
 import ChartFour from './chart/graph/ChartFour';
-import { csv , sum , max , scaleBand , scaleTime } from 'd3';
+import { csv , sum , max , scaleBand , scaleTime , format } from 'd3';
 import Select from 'react-select';
 import ReactDataGrid from 'react-data-grid';
 import _ from 'underscore';
@@ -25,7 +25,9 @@ class MainPage extends Component {
       cumulativePayments: [],
       timeDomain: [],
       listValues: [{value:'val_1', label: 'Select from Dropdown Above' }],
-      nullValuesInColumn: []
+      nullValuesInColumn: [],
+      keyClicked: null,
+      rowsSelected: []
     }
   }
   ;
@@ -103,9 +105,11 @@ class MainPage extends Component {
       }, 0 ),
       nullDataSet = Object.keys(reduce).map(o => { return { name: o, value: reduce[o] }})
     ;
+    this.setState({ generateTable: data });
     this.setState({ nullValuesInColumn : nullDataSet });
     this.setState({ keys: keys });
     this.setState({ chartOneXDomain : keys });
+    this.setState({ keyClicked: val.label });
 
     let summation = keys.map(o => {
       const filteredDataSet = _.filter(data, k => k[ val.label ] === o );
@@ -123,9 +127,16 @@ class MainPage extends Component {
   }
   ;
   multiSelect = (val) => {
+    if ( val.length <= 0 ) return this.setState({'rowsSelected': [] });
     const
-      filteredDataSet = val.map(o => o['label'] )
+      data = this.state.data,
+      keyClicked = this.state.keyClicked,
+      filteredDataSet = val
+        .map(o => o['label'] )
+        .map(k => _.filter(data, e => e[ keyClicked ] == k ) )
+        .reduce((a,b) => a.concat(b) )
     ;
+    this.setState({'rowsSelected': filteredDataSet });
   }
   ;
   componentDidMount () {
@@ -137,14 +148,14 @@ class MainPage extends Component {
   }
   ;
   render () {
-    let list = this.state.keys;
-    let data = this.state.data;
     const
       width = 1000,
       height = 200,
+      data = this.state.rowsSelected == 0 ? this.state.data : this.state.rowsSelected,
       yDomain = this.state.chartOneYDomain,
       xDomain = this.state.chartOneXDomain,
       xDomainTime = this.state.timeDomain,
+      rowsSelected = this.state.rowsSelected,
       aggregateColumns = this.state.aggregateColumns,
       nullValuesInColumn = this.state.nullValuesInColumn,
       position = `translate(20,0)`,
@@ -230,6 +241,14 @@ class MainPage extends Component {
           id={ 'four' }
           style={{ height : height }}
         >
+          { rowsSelected.length  ? <div>
+            <p className='inner-stat'> Rows Selected : <span>{ rowsSelected.length }</span> </p>
+            <p className='inner-stat'> Total USD Payment Selected:
+              <span>{ format('$,.2f')(this.sumPayment(rowsSelected, 'Total_Amount_of_Payment_USDollars' ))} </span>
+            </p>
+            </div>
+           : null
+          }
           <Select
             options={ this.state.columns }
             onChange= { this.filter }
@@ -246,8 +265,8 @@ class MainPage extends Component {
       >
         <ReactDataGrid
           columns={ this.state.columns }
-          rowGetter={ i => this.state.data[i] }
-          rowsCount={ this.state.data.length  }
+          rowGetter={ i => data[i] }
+          rowsCount={ data.length  }
           width={ 600 }
           sortable={ true }
           minHeight={ 200 }

@@ -94,7 +94,7 @@ class ChartTwo extends Component {
           .enter()
           .append('div')
           .attr('class', d => 'tooltip-label' )
-          .html(d => `${ d.label } : ${ d.amount == undefined ? 0 : d.amount.totalSum }`)
+          .html(d => `${ d.label } : ${ d.amount == undefined ? 0 : d3.format('$,.2f')(d.amount.totalSum) }`)
       })
   }
   ;
